@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PlanType {
+  FREE
+  PRO
+}
+
+enum PropertyStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELED
+}
+
+enum DomainStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  BOOKING_REQUEST
+  BOOKING_APPROVED
+  BOOKING_DECLINED
+  PUBLISH
+}
+
+model User {
+  id               String           @id @default(cuid())
+  name             String
+  email            String           @unique
+  passwordHash     String
+  phone            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  subscription     Subscription?
+  properties       Property[]
+  emailPreference  EmailPreference?
+}
+
+model Subscription {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  plan                PlanType  @default(FREE)
+  status              String    @default("active")
+  stripeCustomerId    String?   @unique
+  stripeSubscriptionId String?  @unique
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Property {
+  id                       String            @id @default(cuid())
+  userId                   String
+  slug                     String            @unique
+  name                     String
+  propertyType             String
+  location                 String
+  guestCapacity            Int
+  bedrooms                 Int
+  beds                     Int
+  bathrooms                Float
+  shortDescription         String
+  checkInTime              String
+  checkOutTime             String
+  minimumStay              Int
+  houseRules               String
+  petPolicy                String
+  parkingInfo              String
+  wifiInfo                 String
+  baseNightlyRate          Int
+  cleaningFee              Int
+  extraGuestFee            Int?
+  petFee                   Int?
+  taxNotes                 String?
+  hostEmail                String
+  approvalMode             String            @default("manual")
+  cancellationPolicy       String
+  availabilityBuffer       Int?
+  maxAdvanceBookingWindow  Int?
+  siteStatus               PropertyStatus    @default(DRAFT)
+  isPublished              Boolean           @default(false)
+  importSourceUrl          String?
+  importMethod             String            @default("manual")
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  user                     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos                   PropertyPhoto[]
+  amenities                PropertyAmenity[]
+  generatedContent         GeneratedContent?
+  bookingRequests          BookingRequest[]
+  blockedDates             BlockedDate[]
+  calendarFeeds            CalendarFeed[]
+  domains                  Domain[]
+  analyticsEvents          AnalyticsEvent[]
+  themeSettings            ThemeSettings?
+  faqItems                 FAQItem[]
+  reviews                  Review[]
+}
+
+model PropertyPhoto {
+  id         String   @id @default(cuid())
+  propertyId String
+  url        String
+  altText    String
+  sortOrder  Int      @default(0)
+  isCover    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model PropertyAmenity {
+  id         String   @id @default(cuid())
+  propertyId String
+  label      String
+  category   String   @default("general")
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model GeneratedContent {
+  id                      String   @id @default(cuid())
+  propertyId              String   @unique
+  heroHeadline            String
+  heroIntro               String
+  stayDescription         String
+  amenitiesCopy           String
+  neighborhoodHighlights  String
+  faqIntro                String
+  houseRulesSummary       String
+  seoTitle                String
+  metaDescription         String
+  ctaCopy                 String
+  sectionHeadings         Json
+  testimonialPlaceholders Json
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  property                Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model BookingRequest {
+  id                 String        @id @default(cuid())
+  propertyId         String
+  checkIn            DateTime
+  checkOut           DateTime
+  guestCount         Int
+  guestName          String
+  guestEmail         String
+  guestPhone         String?
+  message            String?
+  status             BookingStatus @default(PENDING)
+  estimatedSubtotal  Int
+  estimatedCleaning  Int
+  estimatedExtras    Int
+  estimatedTotal     Int
+  approvedAt         DateTime?
+  declinedAt         DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  property           Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model BlockedDate {
+  id         String   @id @default(cuid())
+  propertyId String
+  date       DateTime
+  note       String?
+  source     String   @default("manual")
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+}
+
+model CalendarFeed {
+  id               String   @id @default(cuid())
+  propertyId       String
+  label            String
+  url              String
+  lastSyncedAt     DateTime?
+  lastImportedHash String?
+  createdAt        DateTime @default(now())
+  property         Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model Domain {
+  id                String       @id @default(cuid())
+  propertyId        String
+  hostname          String       @unique
+  subdomain         String?
+  isPrimary         Boolean      @default(false)
+  isCustom          Boolean      @default(false)
+  verificationToken String
+  status            DomainStatus @default(PENDING)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  property          Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model AnalyticsEvent {
+  id         String             @id @default(cuid())
+  propertyId String
+  path       String
+  type       AnalyticsEventType
+  meta       Json?
+  createdAt  DateTime           @default(now())
+  property   Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model ThemeSettings {
+  id          String   @id @default(cuid())
+  propertyId  String   @unique
+  theme       String
+  brandColor  String?
+  logoUrl     String?
+  hideBadge   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model FAQItem {
+  id         String   @id @default(cuid())
+  propertyId String
+  question   String
+  answer     String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  propertyId String
+  guestName  String
+  source     String?
+  location   String?
+  body       String
+  rating     Int      @default(5)
+  stayMonth  String?
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model EmailPreference {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  marketing             Boolean  @default(false)
+  bookingRequests       Boolean  @default(true)
+  bookingStatusUpdates  Boolean  @default(true)
+  publishUpdates        Boolean  @default(true)
+  billingUpdates        Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

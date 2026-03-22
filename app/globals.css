@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-sans: "Avenir Next", "Segoe UI Variable Text", "Helvetica Neue", Helvetica, sans-serif;
+  --canvas: #f5eee6;
+  --surface: #fffaf4;
+  --surface-soft: #f0e5d8;
+  --surface-strong: #e6d7c5;
+  --ink: #221812;
+  --muted: #6d5d4f;
+  --line: #dbcbb8;
+  --accent: #8f5a2c;
+  --accent-foreground: #fff8f2;
+  --accent-soft: #ecd8c2;
+  --success: #315b46;
+  --warn: #a46824;
+  --danger: #8a3b24;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(255, 247, 238, 0.7), transparent 32%),
+    linear-gradient(180deg, #f8f2ec 0%, #f5eee6 38%, #f9f4ef 100%);
+  color: var(--ink);
+  font-family: var(--font-sans), sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: rgba(143, 90, 44, 0.18);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display), serif;
+    letter-spacing: -0.03em;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+}
+
+@layer components {
+  .container-shell {
+    @apply mx-auto w-full max-w-7xl px-5 md:px-8;
+  }
+
+  .panel {
+    @apply rounded-xl border border-line bg-surface;
+  }
+
+  .input-base {
+    @apply h-11 w-full rounded-lg border border-line bg-white px-3 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-[#ecd8c2];
+  }
+
+  .textarea-base {
+    @apply min-h-28 w-full rounded-lg border border-line bg-white px-3 py-3 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-[#ecd8c2];
+  }
+}

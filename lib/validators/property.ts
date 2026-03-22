@@ -1,0 +1,45 @@
+import { z } from "zod";
+
+export const propertyInputSchema = z.object({
+  importMethod: z.enum(["url", "manual"]),
+  importSourceUrl: z.string().url().optional().or(z.literal("")),
+  name: z.string().min(2),
+  propertyType: z.string().min(2),
+  location: z.string().min(2),
+  guestCapacity: z.coerce.number().int().min(1),
+  bedrooms: z.coerce.number().int().min(0),
+  beds: z.coerce.number().int().min(1),
+  bathrooms: z.coerce.number().min(1),
+  shortDescription: z.string().min(24),
+  amenities: z.array(z.string()).min(1),
+  checkInTime: z.string().min(1),
+  checkOutTime: z.string().min(1),
+  minimumStay: z.coerce.number().int().min(1),
+  houseRules: z.string().min(8),
+  petPolicy: z.string().min(2),
+  parkingInfo: z.string().min(2),
+  wifiInfo: z.string().min(2),
+  baseNightlyRate: z.coerce.number().int().min(50),
+  cleaningFee: z.coerce.number().int().min(0),
+  extraGuestFee: z.coerce.number().int().min(0).optional().nullable(),
+  petFee: z.coerce.number().int().min(0).optional().nullable(),
+  taxNotes: z.string().optional().nullable(),
+  hostEmail: z.string().email(),
+  availabilityBuffer: z.coerce.number().int().min(0).optional().nullable(),
+  cancellationPolicy: z.string().min(8),
+  maxAdvanceBookingWindow: z.coerce.number().int().min(0).optional().nullable(),
+  theme: z.enum(["Modern", "Cozy", "Luxury", "Beach", "Cabin", "Urban"]),
+  brandColor: z.string().optional().nullable(),
+  logoUrl: z.string().optional().nullable(),
+  subdomain: z.string().min(3).max(40),
+  photos: z.array(
+    z.object({
+      url: z.string().min(1),
+      altText: z.string().min(2),
+      sortOrder: z.number(),
+      isCover: z.boolean().optional(),
+    }),
+  ),
+});
+
+export type PropertyInput = z.infer<typeof propertyInputSchema>;
