@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
 import { AuthFormSubmit } from "@/components/forms/auth-form-submit";
 import { Input } from "@/components/ui/input";
@@ -7,16 +8,34 @@ import { Input } from "@/components/ui/input";
 async function loginAction(formData: FormData) {
   "use server";
 
-  await signIn("credentials", {
-    email: formData.get("email"),
-    password: formData.get("password"),
-    redirect: false,
-  });
+  try {
+    await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      redirect: false,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      redirect("/sign-in?error=invalid");
+    }
+
+    throw error;
+  }
 
   redirect("/dashboard");
 }
 
-export default function SignInPage() {
+const errorMessages: Record<string, string> = {
+  invalid: "That email/password combination didn’t work.",
+};
+
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   return (
     <main className="container-shell grid min-h-screen items-center py-16 md:grid-cols-[1fr_440px]">
       <div className="space-y-6 pr-0 md:pr-16">
@@ -32,6 +51,11 @@ export default function SignInPage() {
       </div>
       <div className="panel p-6 md:p-8">
         <form action={loginAction} className="space-y-4">
+          {error && (
+            <div className="rounded-lg border border-[#e2c5bb] bg-[#fff2ee] px-4 py-3 text-sm text-danger">
+              {errorMessages[error] ?? "We couldn’t sign you in."}
+            </div>
+          )}
           <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>
             <Input name="email" type="email" required />

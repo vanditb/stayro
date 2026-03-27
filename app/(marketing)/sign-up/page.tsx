@@ -3,7 +3,18 @@ import { registerUserAction } from "@/lib/actions/auth";
 import { AuthFormSubmit } from "@/components/forms/auth-form-submit";
 import { Input } from "@/components/ui/input";
 
-export default function SignUpPage() {
+const errorMessages: Record<string, string> = {
+  invalid: "Please check your name, email, and password.",
+  exists: "An account with that email already exists.",
+};
+
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   return (
     <main className="container-shell grid min-h-screen items-center py-16 md:grid-cols-[1fr_440px]">
       <div className="space-y-6 pr-0 md:pr-16">
@@ -19,6 +30,11 @@ export default function SignUpPage() {
       </div>
       <div className="panel p-6 md:p-8">
         <form action={registerUserAction} className="space-y-4">
+          {error && (
+            <div className="rounded-lg border border-[#e2c5bb] bg-[#fff2ee] px-4 py-3 text-sm text-danger">
+              {errorMessages[error] ?? "We couldn’t create your account."}
+            </div>
+          )}
           <div className="space-y-2">
             <label className="text-sm font-medium">Full name</label>
             <Input name="name" required />

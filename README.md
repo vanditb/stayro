@@ -81,25 +81,33 @@ If `OPENAI_API_KEY`, Stripe, or Resend are missing, the app falls back gracefull
 npm install
 ```
 
-2. Generate Prisma client.
+2. Start a local Prisma Postgres server for development.
+
+```bash
+npx prisma dev -d
+```
+
+3. Generate Prisma client.
 
 ```bash
 npx prisma generate
 ```
 
-3. Run a migration against your PostgreSQL database.
+4. Sync the schema to the local database.
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma db push
 ```
 
-4. Seed the demo data.
+An initial SQL migration is also checked into [prisma/migrations/20260327120000_init/migration.sql](/Users/vanditb/stayro/prisma/migrations/20260327120000_init/migration.sql) for version control.
+
+5. Seed the demo data.
 
 ```bash
 npm run prisma:seed
 ```
 
-5. Start the app.
+6. Start the app.
 
 ```bash
 npm run dev
